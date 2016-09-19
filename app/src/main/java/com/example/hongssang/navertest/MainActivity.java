@@ -18,11 +18,14 @@ import com.nhn.android.maps.NMapView;
 import com.nhn.android.maps.maplib.NGeoPoint;
 import com.nhn.android.maps.nmapmodel.NMapError;
 import com.nhn.android.maps.overlay.NMapPOIdata;
+import com.nhn.android.maps.overlay.NMapPOIitem;
 import com.nhn.android.mapviewer.NMapPOIflagType;
 import com.nhn.android.mapviewer.NMapViewerResourceProvider;
 import com.nhn.android.mapviewer.overlay.NMapMyLocationOverlay;
 import com.nhn.android.mapviewer.overlay.NMapOverlayManager;
 import com.nhn.android.mapviewer.overlay.NMapPOIdataOverlay;
+
+//import android.database.sqlite.SQLiteOpenHelper;
 
 public class MainActivity extends NMapActivity implements NMapView.OnMapStateChangeListener, NMapView.OnMapViewTouchEventListener {
 
@@ -40,6 +43,7 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     private NMapLocationManager mMapLocationManager;
     private NMapMyLocationOverlay mMyLocationOverlay;
     private NMapCompassManager mMapCompassManager;
+    private NMapPOIdataOverlay poiDataOverlay;
 
     int bottom_mode = 0;
     @Override
@@ -88,6 +92,19 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         });
     }
 
+    private final NMapPOIdataOverlay.OnStateChangeListener onPOIdataStateChangeListener = new NMapPOIdataOverlay.OnStateChangeListener() {
+
+        @Override
+        public void onFocusChanged(NMapPOIdataOverlay nMapPOIdataOverlay, NMapPOIitem nMapPOIitem) {
+            // POI clicked
+        }
+
+        @Override
+        public void onCalloutClick(NMapPOIdataOverlay poiDataOverlay, NMapPOIitem item) {
+            Log.v("test","click!!");
+        }
+    };
+
     public void register(){
         Log.v("Debug", "register called");
         TextView tempX = (TextView) findViewById(R.id.x_value);
@@ -112,7 +129,9 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         poiData.endPOIdata();
 
         // 위치 데이터를 사용하여 오버레이 생성
-        NMapPOIdataOverlay poiDataOverlay = mOverlayManager.createPOIdataOverlay(poiData, null);
+        poiDataOverlay = mOverlayManager.createPOIdataOverlay(poiData, null);
+        poiDataOverlay.setOnStateChangeListener(onPOIdataStateChangeListener);
+
         poiDataOverlay.showAllPOIdata(0);
         Log.v("Debug", "register end");
     }
@@ -124,13 +143,11 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
             if (location == null){
                 // 재시도.
             }
-            else mMapController.setMapCenter(location,11 );
-            //mMapController.setMapCenter(new NGeoPoint(126.978371, 37.5666091), 11);
+            else mMapController.setMapCenter(location,13);
         }
         else{
             android.util.Log.e("NMAP", "onMapInitHandler: error=" + nMapError.toString());
         }
-
     }
 
     private final NMapLocationManager.OnLocationChangeListener onMyLocationChangeListener = new NMapLocationManager.OnLocationChangeListener() {
@@ -172,6 +189,8 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         if (isMyLocationEnabled) {
             return mMapLocationManager.getMyLocation();
         } else {
+            if (mMapLocationManager.isMyLocationEnabled())
+                return mMapLocationManager.getMyLocation();
             return new NGeoPoint(126.978371, 37.5666091);
         }
     }
