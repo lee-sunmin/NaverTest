@@ -1,8 +1,6 @@
 package com.example.hongssang.navertest;
 
-import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -10,15 +8,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.nhn.android.maps.NMapActivity;
+import com.nhn.android.maps.NMapCompassManager;
 import com.nhn.android.maps.NMapController;
-import com.nhn.android.maps.NMapOverlay;
+import com.nhn.android.maps.NMapLocationManager;
 import com.nhn.android.maps.NMapView;
 import com.nhn.android.maps.maplib.NGeoPoint;
 import com.nhn.android.maps.nmapmodel.NMapError;
 import com.nhn.android.maps.overlay.NMapPOIdata;
 import com.nhn.android.mapviewer.NMapPOIflagType;
 import com.nhn.android.mapviewer.NMapViewerResourceProvider;
+import com.nhn.android.mapviewer.overlay.NMapMyLocationOverlay;
 import com.nhn.android.mapviewer.overlay.NMapOverlayManager;
 import com.nhn.android.mapviewer.overlay.NMapPOIdataOverlay;
 
@@ -35,6 +37,9 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     NMapViewerResourceProvider mMapViewerResourceProvider = null;
     // 오버레이 관리자
     NMapOverlayManager mOverlayManager;
+    private NMapLocationManager mMapLocationManager;
+    private NMapMyLocationOverlay mMyLocationOverlay;
+    private NMapCompassManager mMapCompassManager;
 
     int bottom_mode = 0;
     @Override
@@ -115,10 +120,72 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     @Override
     public void onMapInitHandler(NMapView nMapView, NMapError nMapError) {
         if(nMapError == null){
-            mMapController.setMapCenter(new NGeoPoint(126.978371, 37.5666091), 11);
+            NGeoPoint location = startMyLocation();
+            if (location == null){
+                // 재시도.
+            }
+            else mMapController.setMapCenter(location,11 );
+            //mMapController.setMapCenter(new NGeoPoint(126.978371, 37.5666091), 11);
         }
         else{
             android.util.Log.e("NMAP", "onMapInitHandler: error=" + nMapError.toString());
+        }
+
+    }
+
+    private final NMapLocationManager.OnLocationChangeListener onMyLocationChangeListener = new NMapLocationManager.OnLocationChangeListener() {
+
+        @Override
+        public boolean onLocationChanged(NMapLocationManager locationManager,
+                                         NGeoPoint myLocation) {
+            Log.d("myLog", "myLocation  lat " + myLocation.getLatitude());
+            Log.d("myLog", "myLocation  lng " + myLocation.getLongitude());
+
+            return true;
+        }
+
+        @Override
+        public void onLocationUpdateTimeout(NMapLocationManager locationManager) {
+
+            Toast.makeText(MainActivity.this,
+                    "Your current location is temporarily unavailable.",
+                    Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onLocationUnavailableArea(
+                NMapLocationManager locationManager, NGeoPoint myLocation) {
+
+            Toast.makeText(MainActivity.this,
+                    "Your current location is unavailable area.",
+                    Toast.LENGTH_LONG).show();
+            stopMyLocation();
+        }
+    };
+
+    private NGeoPoint startMyLocation() {
+        mMapLocationManager = new NMapLocationManager(this);
+        mMapLocationManager.setOnLocationChangeListener(onMyLocationChangeListener);
+        // 현재 위치 탐색을 시작한다.
+
+        boolean isMyLocationEnabled = mMapLocationManager.enableMyLocation(false);
+        if (isMyLocationEnabled) {
+            return mMapLocationManager.getMyLocation();
+        } else {
+            return new NGeoPoint(126.978371, 37.5666091);
+        }
+    }
+
+    private void stopMyLocation() {
+        if (mMyLocationOverlay != null) {
+            mMapLocationManager.disableMyLocation();
+
+            if (mMapView.isAutoRotateEnabled()) {
+                mMyLocationOverlay.setCompassHeadingVisible(false);
+                mMapCompassManager.disableCompass();
+                mMapView.setAutoRotateEnabled(false, false);
+                MapContainer.requestLayout();
+            }
         }
     }
 
