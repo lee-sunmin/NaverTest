@@ -16,10 +16,11 @@
         android:weightSum="1">
 
         <LinearLayout
+            android:id="@+id/map_wrap"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.5">
+            android:layout_weight="0.9">
 
             <LinearLayout
                 android:id="@+id/map"
@@ -30,13 +31,14 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/input_wrap"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.4">
+            android:layout_weight="0">
 
             <LinearLayout
-                android:id="@+id/bottom_container"
+                android:id="@+id/input"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -55,13 +57,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SEARCH"
-                android:id="@+id/button_search" />
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="REGISTER"
-                android:id="@+id/button_register" />
+                android:id="@+id/main_search_tab" />
         </LinearLayout>
     </LinearLayout>
+
 </RelativeLayout>

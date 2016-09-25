@@ -4,4 +4,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="str_done">done</string>
+    <string name="hint_name">상호 이름을 입력하세요.</string>
+    <string name="hint_call">전화번호를 입력하세요.</string>
+    <string name="hint_menu">메뉴를 입력하세요.</string>
 </resources>

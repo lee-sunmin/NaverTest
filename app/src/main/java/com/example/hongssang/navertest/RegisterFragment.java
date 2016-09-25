@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.nhn.android.maps.overlay.NMapPOIdata;
@@ -34,6 +35,11 @@ public class RegisterFragment extends Fragment implements View.OnClickListener {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    LinearLayout MapWrap, InputWrap;
+    Button close_button, register_button;
+    View view;
+    MainActivity ParentActivity;
 
     private OnFragmentInteractionListener mListener;
 
@@ -72,7 +78,27 @@ public class RegisterFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_register, container, false);
+        view = inflater.inflate(R.layout.fragment_register, container, false);
+        ParentActivity = (MainActivity)getActivity();
+
+        close_button = (Button) view.findViewById(R.id.register_close);
+        close_button.setOnClickListener(new Button.OnClickListener(){
+            public void onClick(View v){
+                Log.v("Debug", "Close on RegisterFrag clicked");
+                ParentActivity.changeInputWrapperWeight(0f);
+                ParentActivity.changeMapWrapperWeight(0.9f);
+
+                ParentActivity.bottom_mode = 2;
+            }
+        });
+
+        register_button = (Button) view.findViewById(R.id.register_register);
+        register_button.setOnClickListener(new Button.OnClickListener(){
+            public void onClick(View v){
+            }
+        });
+
+        return view;
     }
 
     @Override
