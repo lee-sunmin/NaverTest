@@ -1,17 +1,16 @@
 package com.example.hongssang.navertest;
 
-import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nhn.android.maps.NMapActivity;
@@ -29,12 +28,14 @@ import com.nhn.android.mapviewer.overlay.NMapMyLocationOverlay;
 import com.nhn.android.mapviewer.overlay.NMapOverlayManager;
 import com.nhn.android.mapviewer.overlay.NMapPOIdataOverlay;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
 //import android.database.sqlite.SQLiteOpenHelper;
 
 public class MainActivity extends NMapActivity implements NMapView.OnMapStateChangeListener, NMapView.OnMapViewTouchEventListener {
+    // DB
+    SQLiteDatabase db;
+    private DBAdapter helper;
+    String tag = "SQLite"; // Log에 사용할 tag
+
     public static Context mContext;
 
     public static final String CLIENT_ID = "EacoUq5gGV_fYxm9nqSM";
@@ -47,6 +48,7 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
 
     // 오버레이의 리소스를 제공하기 위한 객체
     NMapViewerResourceProvider mMapViewerResourceProvider = null;
+
     // 오버레이 관리자
     NMapOverlayManager mOverlayManager;
     private NMapLocationManager mMapLocationManager;
@@ -60,6 +62,8 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        helper = new DBAdapter(this);
 
         MapContainer = (LinearLayout) findViewById(R.id.map);
         mMapView = new NMapView(this);
@@ -77,19 +81,7 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     }
 
     private void setButtons(){
-        search_button = (Button) findViewById(R.id.main_search_tab);
-        search_button.setOnClickListener(new Button.OnClickListener(){
-            public void onClick(View v){
-                if(bottom_mode != 0) {
-                    changeMapWrapperWeight(0.5f);
-                    changeInputWrapperWeight(0.4f);
-                    final FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.input, new SearchFragment());
-                    transaction.commit();
-                    bottom_mode = 0;
-                }
-            }
-        });
+
     }
 
     public void changeMapWrapperWeight(float weight){
@@ -127,6 +119,12 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         String call = data.getStringExtra("call");
         String menu = data.getStringExtra("menu");
         Uri info = data.getParcelableExtra("image");
+
+        // gp로 get 해서 좌표 얻음.
+        //gp.getLatitude(); // x
+        //gp.getLongitude(); //y
+
+        insert(name,call,menu);
 
         // 표시할 위치 데이터를 지정한다. 마지막 인자가 오버레이를 인식하기 위한 id값
         NMapPOIdata poiData = new NMapPOIdata(1, mMapViewerResourceProvider);
@@ -303,4 +301,46 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
             startActivity(intent);
         }
     };
+
+    // DB
+    void deleteAll() {
+        db = helper.getWritableDatabase();
+
+        db.delete("mytable", null, null);
+    }
+
+    void insert(String name, String lat, String lng){
+        db = helper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put("name", name);
+        values.put("lat", lat);
+        values.put("lng", lng);
+        Log.i("db insert","name: "+name+",lat :"+ lat + ",lng :"+lng);
+
+        db.insert("mytable", null, values);
+    }
+
+    public void delete (String name){
+        db = helper.getWritableDatabase();
+        db.delete("mytable","name=?",new String[]{name});
+        Log.i("db",name + "정상적으로 삭제 되었습니다.");
+    }
+
+    public void select(){
+        // 1) db의 데이터를 읽어와서
+        // 2) 결과 저장 3) 해당 데이터를 꺼내 사용
+
+        db = helper.getReadableDatabase();
+        Cursor cursor = db.query("mytable",null,null,null,null,null,null);
+
+        while (cursor.moveToNext()){
+            String name = cursor.getString(cursor.getColumnIndex("name"));
+            String lat = cursor.getString(cursor.getColumnIndex("lat"));
+            String lng = cursor.getString(cursor.getColumnIndex("lng"));
+
+            Log.i("db","name: "+name+",lat :"+ lat + ",lng :"+lng);
+        }
+    }
 }
