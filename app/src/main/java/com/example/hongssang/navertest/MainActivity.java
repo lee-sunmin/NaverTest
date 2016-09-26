@@ -123,23 +123,21 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         // 오버레이들을 관리하기 위한 id값 생성
         int markerId = NMapPOIflagType.PIN;
 
-        Uri imageUri = data.getParcelableExtra("image");
-        Drawable drawableImage;
-//        try {
-//            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-//            drawableImage = Drawable.createFromStream(inputStream, imageUri.toString() );
-//        } catch (FileNotFoundException e) {
-//            drawableImage = getResources().getDrawable(R.drawable.penguins);
-//        }
+        String name = data.getStringExtra("name");
+        String call = data.getStringExtra("call");
+        String menu = data.getStringExtra("menu");
+        Uri info = data.getParcelableExtra("image");
 
         // 표시할 위치 데이터를 지정한다. 마지막 인자가 오버레이를 인식하기 위한 id값
         NMapPOIdata poiData = new NMapPOIdata(1, mMapViewerResourceProvider);
         poiData.beginPOIdata(1);
-        poiData.addPOIitem(gp, "위치", markerId, 0);
+        poiData.addPOIitem(gp, name, markerId, 0);
         poiData.endPOIdata();
 
         // 위치 데이터를 사용하여 오버레이 생성
         poiDataOverlay = mOverlayManager.createPOIdataOverlay(poiData, null);
+        POIdataStateChangeListener onPOIdataStateChangeListener = new POIdataStateChangeListener();
+        onPOIdataStateChangeListener.setInfo(name, call, menu, info);
         poiDataOverlay.setOnStateChangeListener(onPOIdataStateChangeListener);
 
         poiDataOverlay.showAllPOIdata(0);
@@ -254,8 +252,6 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     public void onLongPress(NMapView nMapView, MotionEvent motionEvent) {
         gp = nMapView.getMapProjection().fromPixels((int)motionEvent.getX(), (int)motionEvent.getY());
         Intent intent = new Intent(this, RegisterActivity.class);
-        intent.putExtra("xvalue", gp.getLatitude());
-        intent.putExtra("yvalue", gp.getLongitude());
         startActivityForResult(intent, 0);
     }
 
@@ -283,17 +279,28 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     public void onSingleTapUp(NMapView nMapView, MotionEvent motionEvent) {
     }
 
-
-    private final NMapPOIdataOverlay.OnStateChangeListener onPOIdataStateChangeListener = new NMapPOIdataOverlay.OnStateChangeListener() {
-
+    private class POIdataStateChangeListener implements NMapPOIdataOverlay.OnStateChangeListener {
+        String name, call, menu;
+        Uri image;
+        public void setInfo(String name, String call, String menu, Uri image){
+            this.name = name;
+            this.call = call;
+            this.menu = menu;
+            this.image = image;
+        }
         @Override
         public void onFocusChanged(NMapPOIdataOverlay nMapPOIdataOverlay, NMapPOIitem nMapPOIitem) {
             // POI clicked
         }
-
         @Override
         public void onCalloutClick(NMapPOIdataOverlay poiDataOverlay, NMapPOIitem item) {
             Log.v("test","click!!");
+            Intent intent = new Intent(mContext, InfoActivity.class);
+            intent.putExtra("name", name);
+            intent.putExtra("call", call);
+            intent.putExtra("menu", menu);
+            intent.putExtra("image", image);
+            startActivity(intent);
         }
     };
 }

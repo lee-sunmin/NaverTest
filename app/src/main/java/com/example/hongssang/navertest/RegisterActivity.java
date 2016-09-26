@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,9 +28,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.register_close).setOnClickListener(this);
         findViewById(R.id.register_image).setOnClickListener(this);
 
-        Intent intent = getIntent();
-        xvalue = intent.getDoubleExtra("xvalue", 126.978371);
-        yvalue = intent.getDoubleExtra("yvalue", 37.5666091);
         setResult(0);
     }
 
@@ -41,6 +39,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             case R.id.register_register:
                 Log.v("REGISTER", "clicked");
                 Intent resultIntent = new Intent();
+                resultIntent.putExtra("name", ((TextView)findViewById(R.id.register_name)).getText().toString());
+                resultIntent.putExtra("call", ((TextView)findViewById(R.id.register_call)).getText().toString());
+                resultIntent.putExtra("menu", ((TextView)findViewById(R.id.register_menu)).getText().toString());
                 resultIntent.putExtra("image", imageUri);
                 setResult(1, resultIntent);
                 finish();
