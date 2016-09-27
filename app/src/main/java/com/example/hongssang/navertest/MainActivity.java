@@ -7,6 +7,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatCallback;
+import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.view.ActionMode;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Button;
@@ -28,7 +33,8 @@ import com.nhn.android.mapviewer.overlay.NMapMyLocationOverlay;
 import com.nhn.android.mapviewer.overlay.NMapOverlayManager;
 import com.nhn.android.mapviewer.overlay.NMapPOIdataOverlay;
 
-public class MainActivity extends NMapActivity implements NMapView.OnMapStateChangeListener, NMapView.OnMapViewTouchEventListener {
+public class MainActivity extends NMapActivity implements NMapView.OnMapStateChangeListener,
+        NMapView.OnMapViewTouchEventListener, AppCompatCallback {
     // DB
     SQLiteDatabase db;
     private DBAdapter helper;
@@ -51,14 +57,29 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     private NMapMyLocationOverlay mMyLocationOverlay;
     private NMapCompassManager mMapCompassManager;
     private NMapPOIdataOverlay poiDataOverlay;
-
     int bottom_mode = 2;
+    private AppCompatDelegate delegate;
+
     //0.search, 1,register, 2.nothing
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //let's create the delegate, passing the activity at both arguments (Activity, AppCompatCallback)
+        delegate = AppCompatDelegate.create(this, this);
+
+        //we need to call the onCreate() of the AppCompatDelegate
+        delegate.onCreate(savedInstanceState);
+
+        //we use the delegate to inflate the layout
+        delegate.setContentView(R.layout.activity_main);
+
+        //Finally, let's add the Toolbar
+        Toolbar toolbar= (Toolbar) findViewById(R.id.my_awesome_toolbar);
+        delegate.setSupportActionBar(toolbar);
+
+        //
         helper = new DBAdapter(this);
 
         MapContainer = (LinearLayout) findViewById(R.id.map);
@@ -75,7 +96,15 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         setButtons();
         mContext = this;
     }
-
+/*
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.your_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+*/
     // 앱 실행시 데이터베이스에서 정보 읽어와서 모든 POI 뿌려준다.
     public void settingAllPOI(){
         // 1) db의 데이터를 읽어와서
@@ -309,6 +338,22 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
 
     @Override
     public void onSingleTapUp(NMapView nMapView, MotionEvent motionEvent) {
+    }
+
+    @Override
+    public void onSupportActionModeStarted(ActionMode mode) {
+
+    }
+
+    @Override
+    public void onSupportActionModeFinished(ActionMode mode) {
+
+    }
+
+    @Nullable
+    @Override
+    public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback) {
+        return null;
     }
 
     private class POIdataStateChangeListener implements NMapPOIdataOverlay.OnStateChangeListener {
