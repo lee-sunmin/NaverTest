@@ -35,7 +35,6 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     SQLiteDatabase db;
     private DBAdapter helper;
     String tag = "SQLite"; // Log에 사용할 tag
-
     public static Context mContext;
 
     public static final String CLIENT_ID = "EacoUq5gGV_fYxm9nqSM";
@@ -73,11 +72,55 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         mMapView.setOnMapStateChangeListener(this);
         mMapView.setOnMapViewTouchEventListener(this);
         mMapView.setBuiltInZoomControls(true, null);
-
         mMapController = mMapView.getMapController();
 
+        settingAllPOI();
         setButtons();
         mContext = this;
+    }
+
+    // 앱 실행시 데이터베이스에서 정보 읽어와서 모든 POI 뿌려준다.
+    public void settingAllPOI(){
+        // 1) db의 데이터를 읽어와서
+        // 2) 결과 저장 3) 해당 데이터를 꺼내 사용
+        // 표시할 위치 데이터를 지정한다. 마지막 인자가 오버레이를 인식하기 위한 id값
+        String name, call, menu;
+        Double x, y;
+
+        db = helper.getReadableDatabase();
+        Cursor cursor = db.query("mytable",null,null,null,null,null,null);
+
+        while (cursor.moveToNext()){
+            name = cursor.getString(cursor.getColumnIndex("name"));
+            call = cursor.getString(cursor.getColumnIndex("call"));
+            menu = cursor.getString(cursor.getColumnIndex("menu"));
+            x = cursor.getDouble(cursor.getColumnIndex("x"));
+            y = cursor.getDouble(cursor.getColumnIndex("y"));
+
+            //
+            int markerId = NMapPOIflagType.PIN;
+
+            Log.d("db","name: "+name+",call :"+ call + ",menu :"+menu+", x:"+x+",y:"+y);
+            NGeoPoint temp = new NGeoPoint(x,y);
+
+            mMapViewerResourceProvider = new NMapViewerResourceProvider(this);
+            mOverlayManager = new NMapOverlayManager(this, mMapView, mMapViewerResourceProvider);
+
+            Log.d("here is setting~ ","x : "+x+"y : "+y);
+            Log.d("this is temp~ ","temp : "+temp);
+            NMapPOIdata poiData = new NMapPOIdata(1, mMapViewerResourceProvider);
+            poiData.beginPOIdata(1);
+            poiData.addPOIitem(temp, name, markerId, 0);
+            poiData.endPOIdata();
+            Log.d("db",poiData.count()+"는 갯수");
+            // 위치 데이터를 사용하여 오버레이 생성
+            poiDataOverlay = mOverlayManager.createPOIdataOverlay(poiData, null);
+            POIdataStateChangeListener onPOIdataStateChangeListener = new POIdataStateChangeListener();
+            onPOIdataStateChangeListener.setInfo(name, call, menu);//, info);
+            poiDataOverlay.setOnStateChangeListener(onPOIdataStateChangeListener);
+
+            poiDataOverlay.showAllPOIdata(0);
+        }
     }
 
     private void setButtons(){
@@ -119,12 +162,12 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         String call = data.getStringExtra("call");
         String menu = data.getStringExtra("menu");
         Uri info = data.getParcelableExtra("image");
+        Double x = gp.getLongitude();
+        Double y = gp.getLatitude();
 
-        // gp로 get 해서 좌표 얻음.
-        //gp.getLatitude(); // x
-        //gp.getLongitude(); //y
+        insert(name,call,menu,x,y);
 
-        insert(name,call,menu);
+        Log.d("here is register ~"," x : "+x+" y : "+y);
 
         // 표시할 위치 데이터를 지정한다. 마지막 인자가 오버레이를 인식하기 위한 id값
         NMapPOIdata poiData = new NMapPOIdata(1, mMapViewerResourceProvider);
@@ -135,7 +178,7 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         // 위치 데이터를 사용하여 오버레이 생성
         poiDataOverlay = mOverlayManager.createPOIdataOverlay(poiData, null);
         POIdataStateChangeListener onPOIdataStateChangeListener = new POIdataStateChangeListener();
-        onPOIdataStateChangeListener.setInfo(name, call, menu, info);
+        onPOIdataStateChangeListener.setInfo(name, call, menu);//, info);
         poiDataOverlay.setOnStateChangeListener(onPOIdataStateChangeListener);
 
         poiDataOverlay.showAllPOIdata(0);
@@ -280,7 +323,7 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     private class POIdataStateChangeListener implements NMapPOIdataOverlay.OnStateChangeListener {
         String name, call, menu;
         Uri image;
-        public void setInfo(String name, String call, String menu, Uri image){
+        public void setInfo(String name, String call, String menu){//,Uri image){
             this.name = name;
             this.call = call;
             this.menu = menu;
@@ -309,15 +352,18 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         db.delete("mytable", null, null);
     }
 
-    void insert(String name, String lat, String lng){
+    void insert(String name, String call, String menu, Double x, Double y){
         db = helper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
 
         values.put("name", name);
-        values.put("lat", lat);
-        values.put("lng", lng);
-        Log.i("db insert","name: "+name+",lat :"+ lat + ",lng :"+lng);
+        values.put("call", call);
+        values.put("menu", menu);
+        values.put("x",x);
+        values.put("y",y);
+        Log.i("db insert","name: "+name+",call :"+ call + ",menu :"+menu+",x :"+x+",y:"+y);
+        Log.d("db","gp : "+gp);
 
         db.insert("mytable", null, values);
     }
