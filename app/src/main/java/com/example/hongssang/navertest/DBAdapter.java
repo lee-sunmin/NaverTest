@@ -24,7 +24,7 @@ public class DBAdapter extends SQLiteOpenHelper{
         // 최초에 데이터베이스가 없을 경우 생성을 위해 호출됨
         // 데이블 생성하는 코드 작성
         String sql = "create table mytable(id integer primary key autoincrement, " +
-                "name text, callNumber text, menu text );";
+                "name text,call text,menu text,x Double,y Double,image text);";
 
         db.execSQL(sql);
     }
