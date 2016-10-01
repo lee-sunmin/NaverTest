@@ -14,6 +14,7 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -59,6 +60,7 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
     private NMapPOIdataOverlay poiDataOverlay;
     int bottom_mode = 2;
     private AppCompatDelegate delegate;
+    Button showevents;
 
     //0.search, 1,register, 2.nothing
     @Override
@@ -92,19 +94,21 @@ public class MainActivity extends NMapActivity implements NMapView.OnMapStateCha
         mMapView.setBuiltInZoomControls(true, null);
         mMapController = mMapView.getMapController();
 
+        showevents = (Button)findViewById(R.id.search);
         settingAllPOI();
         setButtons();
         mContext = this;
+
+        showevents.setOnClickListener(new Button.OnClickListener()
+        {
+            public void onClick(View v){
+                Log.d("tool bar","clicked!!");
+                // 이부분이 search button 입니다.
+            }
+        });
+
     }
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu items for use in the action bar
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.your_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-*/
+
     // 앱 실행시 데이터베이스에서 정보 읽어와서 모든 POI 뿌려준다.
     public void settingAllPOI(){
         // 1) db의 데이터를 읽어와서
